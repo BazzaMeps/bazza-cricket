@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bazza's Cricket Oracle 🏏</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0f1a0a;
+    --card: #1a2612;
+    --card-hover: #212f17;
+    --text: #e8f0e0;
+    --text-muted: #8fa882;
+    --accent: #7ab648;
+    --accent-glow: rgba(122,182,72,0.15);
+    --red-light: #e74c3c;
+    --gold-light: #f0c96e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(45,74,30,0.4) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(26,58,92,0.2) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0a1206 0%, #1a2a0e 50%, #0d1a06 100%);
+    border-bottom: 2px solid #4a7a32;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 8px rgba(122,182,72,0.6));
+  }
+
+  .logo-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text p {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .hits-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: rgba(122,182,72,0.08);
+    border: 1px solid rgba(122,182,72,0.2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .hits-display .hits-val {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(122,182,72,0.15);
+  }
+
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 12px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    margin-top: 8px;
+  }
+
+  .section-label h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .section-label .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(122,182,72,0.3), transparent);
+  }
+
+  /* ── MATCH CARD ── */
+  .match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .match-card {
+    background: var(--card);
+    border: 1px solid rgba(122,182,72,0.12);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .match-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .match-card:hover {
+    background: var(--card-hover);
+    border-color: rgba(122,182,72,0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .match-card:hover::before { opacity: 1; }
+
+  .match-card.live-card {
+    border-color: rgba(231,76,60,0.3);
+    background: linear-gradient(135deg, #1a1208 0%, #1a0e0e 100%);
+  }
+
+  .match-card.live-card::before {
+    background: linear-gradient(to right, var(--red-light), transparent);
+    opacity: 1;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .match-type-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-test  { background: rgba(26,58,92,0.5);   color: #7eb8e8; border: 1px solid rgba(126,184,232,0.3); }
+  .badge-odi   { background: rgba(45,90,30,0.5);   color: #8fd46e; border: 1px solid rgba(143,212,110,0.3); }
+  .badge-t20   { background: rgba(107,26,92,0.5);  color: #e070cc; border: 1px solid rgba(224,112,204,0.3); }
+  .badge-other { background: rgba(100,80,20,0.5);  color: #d4a040; border: 1px solid rgba(212,160,64,0.3); }
+
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--red-light);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--red-light);
+    border-radius: 50%;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .match-name {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .team-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .team-row:last-child { border-bottom: none; }
+
+  .team-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .team-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: right;
+  }
+
+  .team-score.no-score { color: var(--text-muted); font-size: 0.75rem; }
+
+  .match-status {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .match-status.highlight {
+    color: var(--gold-light);
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .match-date-venue {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .match-date {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── STATE BOXES ── */
+  .state-box {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .state-box .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .state-box h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+  .state-box p  { font-size: 0.82rem; line-height: 1.5; }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid rgba(122,182,72,0.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── REFRESH BAR ── */
+  .refresh-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(122,182,72,0.05);
+    border: 1px solid rgba(122,182,72,0.1);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .refresh-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .refresh-info span { color: var(--accent); }
+
+  .refresh-btn {
+    background: rgba(122,182,72,0.12);
+    border: 1px solid rgba(122,182,72,0.25);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .refresh-btn:hover  { background: rgba(122,182,72,0.2); border-color: rgba(122,182,72,0.4); }
+  .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── FILTER PILLS ── */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .filter-pill {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-pill:hover { border-color: rgba(122,182,72,0.3); color: var(--text); }
+  .filter-pill.active {
+    background: rgba(122,182,72,0.15);
+    border-color: rgba(122,182,72,0.4);
+    color: var(--accent);
+  }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: #141d0e;
+    border: 1px solid rgba(122,182,72,0.2);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(122,182,72,0.3) transparent;
+  }
+
+  .modal-header {
+    position: sticky;
+    top: 0;
+    background: #141d0e;
+    border-bottom: 1px solid rgba(122,182,72,0.15);
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .modal-title    { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--accent); font-weight: 700; }
+  .modal-subtitle { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 20px; }
+
+  .scorecard-innings {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .innings-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .innings-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .innings-overs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .scorecard-status {
+    background: rgba(122,182,72,0.08);
+    border: 1px solid rgba(122,182,72,0.15);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: var(--gold-light);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* ── FIXTURES / RESULTS ── */
+  .fixture-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+
+  .fixture-row {
+    background: var(--card);
+    border: 1px solid rgba(122,182,72,0.08);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+  }
+
+  .fixture-row:hover { background: var(--card-hover); }
+
+  .fixture-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .fixture-teams {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .fixture-teams small {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .fixture-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  .badge-upcoming { background: rgba(122,182,72,0.1);  color: var(--accent);    border: 1px solid rgba(122,182,72,0.2); }
+  .badge-result   { background: rgba(150,150,150,0.1); color: var(--text-muted); border: 1px solid rgba(150,150,150,0.15); }
+
+  /* ── SETTINGS ── */
+  .settings-card {
+    background: var(--card);
+    border: 1px solid rgba(122,182,72,0.12);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    max-width: 460px;
+  }
+
+  .settings-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .settings-sublabel {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .api-key-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(122,182,72,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .api-key-input:focus { border-color: rgba(122,182,72,0.4); }
+
+  .save-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(122,182,72,0.2), rgba(122,182,72,0.1));
+    border: 1px solid rgba(122,182,72,0.3);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .save-btn:hover { background: linear-gradient(135deg, rgba(122,182,72,0.3), rgba(122,182,72,0.15)); }
+
+  /* ── BBC LINK ── */
+  .bbc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+
+  .bbc-link:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+  }
+
+  /* ── AUTO-REFRESH SELECT ── */
+  .ar-select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(122,182,72,0.2);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    padding: 5px 8px;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.68rem;
+    color: rgba(122,182,72,0.3);
+    border-top: 1px solid rgba(122,182,72,0.08);
+    margin-top: 40px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2612;
+    border: 1px solid rgba(122,182,72,0.3);
+    color: var(--accent);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .match-grid { grid-template-columns: 1fr; }
+    .fixture-row { grid-template-columns: 75px 1fr; }
+    .fixture-badge { display: none; }
+    .header-inner { padding: 10px 14px; }
+    .logo-text h1 { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🏏</div>
+      <div class="logo-text">
+        <h1>Bazza's Cricket Oracle</h1>
+        <p>Powered by CricketData.org</p>
+      </div>
+    </div>
+    <div class="hits-display" id="hitsDisplay" style="display:none;">
+      <div>API Hits Today</div>
+      <div class="hits-val" id="hitsUsed">—</div>
+      <div>of <span id="hitsLimit">100</span></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="tab-btn active" onclick="switchTab('live', this)">🔴 Live</button>
+    <button class="tab-btn" onclick="switchTab('fixtures', this)">📅 Fixtures</button>
+    <button class="tab-btn" onclick="switchTab('results', this)">📋 Results</button>
+    <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- LIVE -->
+  <div class="tab-panel active" id="tab-live">
+    <div class="refresh-bar">
+      <div class="refresh-info">Last updated: <span id="lastUpdated">—</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="ar-select" id="autoRefreshSelect" onchange="setAutoRefresh()">
+          <option value="0">No auto-refresh</option>
+          <option value="60">Every 1 min</option>
+          <option value="120">Every 2 min</option>
+          <option value="300">Every 5 min</option>
+        </select>
+        <button class="refresh-btn" id="refreshBtn" onclick="loadLive()">⟳ Refresh</button>
+      </div>
+    </div>
+
+    <a href="https://www.bbc.co.uk/sport/cricket/scores-fixtures" target="_blank" class="bbc-link">
+      🏴󠁧󠁢󠁥󠁮󠁧󠁿 BBC Sport Cricket Scores ↗
+    </a>
+
+    <div class="filter-row">
+      <button class="filter-pill active" onclick="setLiveFilter(this,'all')">All</button>
+      <button class="filter-pill" onclick="setLiveFilter(this,'Test')">Test</button>
+      <button class="filter-pill" onclick="setLiveFilter(this,'ODI')">ODI</button>
+      <button class="filter-pill" onclick="setLiveFilter(this,'T20')">T20</button>
+      <button class="filter-pill" onclick="setLiveFilter(this,'england')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</button>
+    </div>
+
+    <div id="liveContent">
+      <div class="state-box"><div class="spinner"></div><h3>Loading live matches…</h3></div>
+    </div>
+  </div>
+
+  <!-- FIXTURES -->
+  <div class="tab-panel" id="tab-fixtures">
+    <div class="section-label"><h2>📅 Upcoming Fixtures</h2><div class="line"></div></div>
+    <div class="filter-row">
+      <button class="filter-pill active" onclick="setFixtureFilter(this,'all')">All</button>
+      <button class="filter-pill" onclick="setFixtureFilter(this,'england')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</button>
+    </div>
+    <div id="fixturesContent">
+      <div class="state-box"><div class="spinner"></div><h3>Loading fixtures…</h3></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="tab-panel" id="tab-results">
+    <div class="section-label"><h2>📋 Recent Results</h2><div class="line"></div></div>
+    <div id="resultsContent">
+      <div class="state-box"><div class="spinner"></div><h3>Loading results…</h3></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="section-label"><h2>⚙️ Settings</h2><div class="line"></div></div>
+
+    <div class="settings-card">
+      <div class="settings-label">API Key</div>
+      <div class="settings-sublabel">Your CricketData.org API key</div>
+      <input type="text" id="settingsApiKey" class="api-key-input" placeholder="Paste your API key…">
+      <button class="save-btn" onclick="saveApiKey()">Save Key</button>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-label">About</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);line-height:1.6;">
+        Bazza's Cricket Oracle pulls live data from CricketData.org (formerly CricAPI).
+        Free tier: 100 API hits/day, valid until March 2029. Data is manually entered
+        and typically lags ~1 minute. For England match detail, BBC Sport is always
+        worth a quick check too.
+      </p>
+      <div style="margin-top:12px;font-size:0.7rem;color:rgba(122,182,72,0.4);">
+        v2.0 · Part of the Bazza Ecosystem · bazzameps.github.io
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">Match Details</div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<footer>🏏 Bazza's Cricket Oracle v2.0 · Data via CricketData.org · Part of the Bazza Ecosystem</footer>
+
+<script>
+const API_BASE = 'https://api.cricapi.com/v1';
+let API_KEY = localStorage.getItem('bazza_cricket_api_key') || '1274e0b5-000b-4ba9-ae58-a0af1c46d6c7';
+let allMatches = [];
+let liveFilter = 'all';
+let fixtureFilter = 'all';
+let autoRefreshTimer = null;
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  document.getElementById('settingsApiKey').value = API_KEY;
+  loadLive();
+  loadFixturesAndResults();
+});
+
+// ── API ──
+async function apiCall(endpoint, params = {}) {
+  const url = new URL(`${API_BASE}/${endpoint}`);
+  url.searchParams.set('apikey', API_KEY);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.status !== 'success') throw new Error(data.reason || 'API error');
+  if (data.info) {
+    document.getElementById('hitsDisplay').style.display = 'block';
+    document.getElementById('hitsUsed').textContent  = data.info.hitsUsed  ?? '—';
+    document.getElementById('hitsLimit').textContent = data.info.hitsLimit ?? '100';
+  }
+  return data;
+}
+
+// ── LIVE ──
+async function loadLive() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Loading…';
+  document.getElementById('liveContent').innerHTML =
+    '<div class="state-box"><div class="spinner"></div><h3>Loading live matches…</h3></div>';
+  try {
+    const data = await apiCall('currentMatches', { offset: 0 });
+    allMatches = data.data || [];
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('en-GB');
+    renderLive();
+  } catch(e) {
+    document.getElementById('liveContent').innerHTML =
+      `<div class="state-box"><div class="icon">⚠️</div><h3>Couldn't load data</h3><p>${e.message}</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⟳ Refresh';
+  }
+}
+
+function renderLive() {
+  const filtered = applyFilter(allMatches, liveFilter);
+  const live     = filtered.filter(m =>  m.matchStarted && !m.matchEnded);
+  const upcoming = filtered.filter(m => !m.matchStarted);
+  let html = '';
+
+  if (live.length) {
+    html += `<div class="section-label"><h2>🔴 Live Now (${live.length})</h2><div class="line"></div></div>`;
+    html += '<div class="match-grid">' + live.map(m => matchCard(m, true)).join('') + '</div>';
+  }
+  if (upcoming.length) {
+    html += `<div class="section-label"><h2>⏳ Starting Soon (${upcoming.length})</h2><div class="line"></div></div>`;
+    html += '<div class="match-grid">' + upcoming.map(m => matchCard(m, false)).join('') + '</div>';
+  }
+  if (!live.length && !upcoming.length) {
+    html = `<div class="state-box"><div class="icon">🏏</div><h3>No live matches right now</h3>
+      <p>Check the Fixtures tab for what's coming up, or Results for recent action.</p></div>`;
+  }
+  document.getElementById('liveContent').innerHTML = html;
+}
+
+function matchCard(m, isLive) {
+  const type  = matchType(m.matchType || m.name || '');
+  const badge = type === 'Test' ? 'badge-test' : type === 'ODI' ? 'badge-odi' : type === 'T20' ? 'badge-t20' : 'badge-other';
+  const t1 = m.teams?.[0] || 'Team 1';
+  const t2 = m.teams?.[1] || 'Team 2';
+  const scores = m.score || [];
+
+  const teamScore = (name) => {
+    const innings = scores.filter(s => s.inning?.toLowerCase().includes(name.toLowerCase()));
+    if (!innings.length) return null;
+    return innings.map(i => {
+      const r = i.r !== undefined ? i.r : '—';
+      const w = i.w !== undefined && i.w < 10 ? `/${i.w}` : '';
+      const o = i.o !== undefined ? ` (${i.o})` : '';
+      return `${r}${w}${o}`;
+    }).join(' | ');
+  };
+
+  const s1 = teamScore(t1);
+  const s2 = teamScore(t2);
+  const d  = m.dateTimeGMT ? new Date(m.dateTimeGMT).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
+  const clickable = m.id ? `onclick="openModal('${m.id}')" title="Tap for scorecard"` : '';
+
+  return `<div class="match-card ${isLive ? 'live-card' : ''}" ${clickable}>
+    <div class="card-header">
+      <div class="match-name">${m.name || 'Match'}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="match-type-badge ${badge}">${type}</span>
+        ${isLive ? '<span class="live-indicator"><span class="live-dot"></span>LIVE</span>' : ''}
+      </div>
+    </div>
+    <div>
+      <div class="team-row">
+        <span class="team-name">${t1}</span>
+        ${s1 ? `<span class="team-score">${s1}</span>` : '<span class="team-score no-score">—</span>'}
+      </div>
+      <div class="team-row">
+        <span class="team-name">${t2}</span>
+        ${s2 ? `<span class="team-score">${s2}</span>` : '<span class="team-score no-score">—</span>'}
+      </div>
+    </div>
+    ${m.status ? `<div class="match-status ${isResult(m.status) ? 'highlight' : ''}">${m.status}</div>` : ''}
+    <div class="match-date-venue">
+      <span class="match-date">${d}</span>
+      ${m.id ? '<span style="font-size:0.62rem;color:rgba(122,182,72,0.45);">tap for scorecard ↗</span>' : ''}
+    </div>
+  </div>`;
+}
+
+// ── FIXTURES & RESULTS ──
+async function loadFixturesAndResults() {
+  try {
+    const data = await apiCall('cricScore');
+    const all  = data.data || [];
+    const now  = new Date();
+
+    const upcoming = all
+      .filter(m => { const d = m.dateTimeGMT ? new Date(m.dateTimeGMT) : null; return d && d > now && !m.matchStarted; })
+      .sort((a,b) => new Date(a.dateTimeGMT) - new Date(b.dateTimeGMT));
+
+    const recent = all
+      .filter(m => m.matchEnded)
+      .sort((a,b) => new Date(b.dateTimeGMT) - new Date(a.dateTimeGMT))
+      .slice(0, 40);
+
+    renderFixtures(upcoming);
+    renderResults(recent);
+  } catch(e) {
+    const err = `<div class="state-box"><div class="icon">⚠️</div><h3>Couldn't load data</h3><p>${e.message}</p></div>`;
+    document.getElementById('fixturesContent').innerHTML = err;
+    document.getElementById('resultsContent').innerHTML  = err;
+  }
+}
+
+function renderFixtures(matches) {
+  const list = fixtureFilter === 'england' ? matches.filter(isEngland) : matches;
+  if (!list.length) {
+    document.getElementById('fixturesContent').innerHTML =
+      '<div class="state-box"><div class="icon">📅</div><h3>No upcoming fixtures found</h3><p>Try changing the filter or check back later.</p></div>';
+    return;
+  }
+  document.getElementById('fixturesContent').innerHTML =
+    '<div class="fixture-list">' + list.slice(0,50).map(m => {
+      const d = m.dateTimeGMT ? new Date(m.dateTimeGMT) : null;
+      const date = d ? d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      const time = d ? d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '';
+      const type = matchType(m.matchType || '');
+      return `<div class="fixture-row">
+        <div class="fixture-date">${date}<br>${time}</div>
+        <div class="fixture-teams">${m.t1||'TBC'} <span style="color:var(--text-muted);font-size:0.7rem;">vs</span> ${m.t2||'TBC'}
+          <small>${m.series||''}</small></div>
+        <span class="fixture-badge badge-upcoming">${type}</span>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function renderResults(matches) {
+  if (!matches.length) {
+    document.getElementById('resultsContent').innerHTML =
+      '<div class="state-box"><div class="icon">📋</div><h3>No recent results</h3><p>Check back after matches complete.</p></div>';
+    return;
+  }
+  document.getElementById('resultsContent').innerHTML =
+    '<div class="fixture-list">' + matches.map(m => {
+      const d = m.dateTimeGMT ? new Date(m.dateTimeGMT) : null;
+      const date = d ? d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
+      const type = matchType(m.matchType || '');
+      const s1 = m.t1s ? ` ${m.t1s}` : '';
+      const s2 = m.t2s ? ` ${m.t2s}` : '';
+      return `<div class="fixture-row">
+        <div class="fixture-date">${date}</div>
+        <div class="fixture-teams">${m.t1||''}${s1} <span style="color:var(--text-muted);">vs</span> ${m.t2||''}${s2}
+          <small>${m.series||''}</small></div>
+        <span class="fixture-badge badge-result">${type}</span>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+// ── MODAL ──
+async function openModal(id) {
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalTitle').textContent    = 'Loading…';
+  document.getElementById('modalSubtitle').textContent = '';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="state-box"><div class="spinner"></div><h3>Loading scorecard…</h3></div>';
+  try {
+    const data = await apiCall('match_info', { id });
+    const m = data.data;
+    if (!m) throw new Error('No match data');
+    document.getElementById('modalTitle').textContent    = m.name || 'Match Details';
+    document.getElementById('modalSubtitle').textContent = m.venue || '';
+    const scores = m.score || [];
+    let html = '';
+    if (scores.length) {
+      scores.forEach(i => {
+        html += `<div class="scorecard-innings">
+          <div class="innings-header">${i.inning || 'Innings'}</div>
+          <div class="innings-score">${i.r??'—'}/${i.w??'—'}</div>
+          <div class="innings-overs">Overs: ${i.o??'—'}</div>
+        </div>`;
+      });
+    } else {
+      html += '<div class="scorecard-innings"><div class="innings-header">No score data yet</div></div>';
+    }
+    if (m.status) html += `<div class="scorecard-status">📢 ${m.status}</div>`;
+    if (m.tossWinner) html += `<div style="margin-top:10px;font-size:0.72rem;color:var(--text-muted);">🪙 Toss: ${m.tossWinner} chose to ${m.tossChoice}</div>`;
+    document.getElementById('modalBody').innerHTML = html;
+  } catch(e) {
+    document.getElementById('modalBody').innerHTML =
+      `<div class="state-box"><div class="icon">⚠️</div><h3>Couldn't load scorecard</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function handleBackdropClick(e) { if (e.target === document.getElementById('modalBackdrop')) closeModal(); }
+function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); }
+
+// ── FILTERS ──
+function applyFilter(matches, filter) {
+  if (filter === 'all') return matches;
+  if (filter === 'england') return matches.filter(isEngland);
+  return matches.filter(m => matchType(m.matchType || m.name || '') === filter);
+}
+
+function isEngland(m) { return JSON.stringify(m).toLowerCase().includes('england'); }
+
+function setLiveFilter(el, val) {
+  document.querySelectorAll('.filter-row .filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  liveFilter = val;
+  renderLive();
+}
+
+function setFixtureFilter(el, val) {
+  el.closest('.filter-row').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  fixtureFilter = val;
+  loadFixturesAndResults();
+}
+
+// ── TABS ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── AUTO REFRESH ──
+function setAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  const secs = parseInt(document.getElementById('autoRefreshSelect').value);
+  if (secs > 0) autoRefreshTimer = setInterval(loadLive, secs * 1000);
+}
+
+// ── SETTINGS ──
+function saveApiKey() {
+  const val = document.getElementById('settingsApiKey').value.trim();
+  if (!val) return;
+  API_KEY = val;
+  localStorage.setItem('bazza_cricket_api_key', val);
+  showToast('API key saved! Reloading…');
+  loadLive();
+  loadFixturesAndResults();
+}
+
+// ── HELPERS ──
+function matchType(s) {
+  s = (s||'').toLowerCase();
+  if (s.includes('test'))                                        return 'Test';
+  if (s.includes('odi') || s.includes('one day'))               return 'ODI';
+  if (s.includes('t20') || s.includes('twenty') || s.includes('ipl') || s.includes('blast') || s.includes('major league')) return 'T20';
+  return 'Cricket';
+}
+
+function isResult(s) {
+  return s && (s.includes('won') || s.includes('Won') || s.includes('draw') || s.includes('tie'));
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+</script>
+</body>
+</html>
