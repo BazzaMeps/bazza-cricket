@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlightly Football API Test</title>
+<style>
+  body { background: #0d0d0d; color: #e0e0e0; font-family: 'Courier New', monospace; padding: 16px; }
+  h1 { color: #4CAF50; font-size: 1.1rem; margin-bottom: 4px; }
+  p  { font-size: 0.72rem; color: #888; margin-bottom: 16px; }
+  .btn { background: #1a1a1a; border: 1px solid #4CAF50; color: #4CAF50; font-family: 'Courier New', monospace; font-size: 0.78rem; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 4px 4px 4px 0; transition: background 0.15s; }
+  .btn:hover { background: #223322; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .result-box { background: #111; border: 1px solid #333; border-radius: 8px; padding: 14px; margin-top: 12px; font-size: 0.68rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; max-height: 500px; overflow-y: auto; }
+  .result-box.ok  { border-color: #2a5c2a; }
+  .result-box.err { border-color: #5c2a2a; color: #ff6b6b; }
+  .label { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-top: 16px; margin-bottom: 4px; }
+  .hits  { font-size: 0.7rem; color: #888; margin-top: 8px; }
+  .hits span { color: #4CAF50; font-weight: bold; }
+  .spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid #333; border-top-color: #4CAF50; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .section { margin-bottom: 20px; border-bottom: 1px solid #1a1a1a; padding-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<h1>⚽ Highlightly Football API — Test Page</h1>
+<p>Bazza's API key pre-loaded. Hit each button and see what comes back raw. No frills — just data.</p>
+
+<div class="hits" id="hitsInfo">API hits remaining: <span id="hitsLeft">—</span></div>
+
+<div class="section" style="margin-top:16px;">
+  <div class="label">1 — Today's Matches (Live / Scheduled)</div>
+  <button class="btn" onclick="testEndpoint('today', this)">▶ Fetch Today's Matches</button>
+  <div class="result-box" id="res-today">— not fetched yet —</div>
+</div>
+
+<div class="section">
+  <div class="label">2 — Live Matches Right Now</div>
+  <button class="btn" onclick="testEndpoint('live', this)">▶ Fetch Live Matches</button>
+  <div class="result-box" id="res-live">— not fetched yet —</div>
+</div>
+
+<div class="section">
+  <div class="label">3 — World Cup Standings / Groups</div>
+  <button class="btn" onclick="testEndpoint('standings', this)">▶ Fetch WC Standings</button>
+  <div class="result-box" id="res-standings">— not fetched yet —</div>
+</div>
+
+<div class="section">
+  <div class="label">4 — Recent Results (Yesterday)</div>
+  <button class="btn" onclick="testEndpoint('yesterday', this)">▶ Fetch Yesterday's Results</button>
+  <div class="result-box" id="res-yesterday">— not fetched yet —</div>
+</div>
+
+<div class="section">
+  <div class="label">5 — Match Detail (tap a match ID from results above)</div>
+  <input id="matchIdInput" style="background:#1a1a1a;border:1px solid #333;color:#e0e0e0;font-family:'Courier New',monospace;font-size:0.75rem;padding:6px 10px;border-radius:4px;width:220px;" placeholder="Paste match ID here…">
+  <button class="btn" onclick="testEndpoint('match', this)">▶ Fetch Match Detail</button>
+  <div class="result-box" id="res-match">— paste a match ID above and fetch —</div>
+</div>
+
+<div class="section">
+  <div class="label">6 — Leagues / Competitions Available</div>
+  <button class="btn" onclick="testEndpoint('leagues', this)">▶ Fetch Football Leagues</button>
+  <div class="result-box" id="res-leagues">— not fetched yet —</div>
+</div>
+
+<div class="section">
+  <div class="label">7 — Fetch All (runs tests 1,2,3,4,6 in sequence)</div>
+  <button class="btn" id="allBtn" onclick="runAll()">▶ Run All Tests</button>
+</div>
+
+<script>
+const API_KEY = '01990bb6-b4ec-4a63-b8af-fc7a67ca7df0';
+const BASE    = 'https://football.highlightly.net';
+
+function today()     { return new Date().toISOString().split('T')[0]; }
+function yesterday() { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
+
+// World Cup 2026 league ID — we'll try a few known IDs
+const WC_LEAGUE_IDS = [1, 17, 39, 2, 848]; // common IDs for WC across providers
+
+async function doFetch(url) {
+  const res = await fetch(url, { headers: { 'x-rapidapi-key': API_KEY } });
+  const rem = res.headers.get('x-ratelimit-requests-remaining');
+  if (rem !== null) {
+    document.getElementById('hitsLeft').textContent = rem;
+  }
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
+
+function show(id, content, isErr) {
+  const el = document.getElementById(`res-${id}`);
+  el.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+  el.className = 'result-box ' + (isErr ? 'err' : 'ok');
+}
+
+function loading(id) {
+  document.getElementById(`res-${id}`).innerHTML = '<span class="spinner"></span>fetching…';
+  document.getElementById(`res-${id}`).className = 'result-box';
+}
+
+async function testEndpoint(key, btn) {
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span>Loading…';
+
+  try {
+    let result;
+
+    if (key === 'today') {
+      loading('today');
+      const r = await doFetch(`${BASE}/matches?date=${today()}&timezone=Europe/London&limit=50`);
+      const matches = r.data?.data || r.data || [];
+      const summary = Array.isArray(matches)
+        ? matches.map(m => `[${m.id}] ${m.homeTeam?.name||'?'} v ${m.awayTeam?.name||'?'} | ${m.league?.name||'?'} | State: ${m.state?.description||'?'} | Score: ${m.state?.score||'?'}`).join('\n')
+        : JSON.stringify(r.data, null, 2);
+      show('today', `HTTP ${r.status} — ${Array.isArray(matches)?matches.length:0} matches found\n\n${summary}`, !r.ok);
+
+    } else if (key === 'live') {
+      loading('live');
+      const r = await doFetch(`${BASE}/matches/live?timezone=Europe/London`);
+      const matches = r.data?.data || r.data || [];
+      const summary = Array.isArray(matches)
+        ? matches.map(m => `[${m.id}] ${m.homeTeam?.name||'?'} v ${m.awayTeam?.name||'?'} | ${m.league?.name||'?'} | Score: ${m.state?.score||'?'} | Min: ${m.state?.minute||'?'}`).join('\n')
+        : JSON.stringify(r.data, null, 2);
+      show('live', `HTTP ${r.status} — ${Array.isArray(matches)?matches.length:0} live matches\n\n${summary || 'No live matches right now'}`, !r.ok);
+
+    } else if (key === 'standings') {
+      loading('standings');
+      // Try to find WC league first
+      const lr = await doFetch(`${BASE}/leagues?leagueName=FIFA+World+Cup&limit=10`);
+      const leagues = lr.data?.data || lr.data || [];
+      show('standings', `LEAGUES SEARCH RESULT:\n${JSON.stringify(leagues, null, 2)}`, !lr.ok);
+      // If we got leagues, try standings for first one
+      if (Array.isArray(leagues) && leagues.length) {
+        const lg = leagues[0];
+        const season = lg.seasons?.[lg.seasons.length-1]?.season || 2026;
+        const sr = await doFetch(`${BASE}/standings?leagueId=${lg.id}&season=${season}`);
+        show('standings',
+          `LEAGUE: ${lg.name} (ID: ${lg.id}, Season: ${season})\n\nSTANDINGS:\n${JSON.stringify(sr.data, null, 2)}`,
+          !sr.ok
+        );
+      }
+
+    } else if (key === 'yesterday') {
+      loading('yesterday');
+      const r = await doFetch(`${BASE}/matches?date=${yesterday()}&timezone=Europe/London&limit=50`);
+      const matches = r.data?.data || r.data || [];
+      const summary = Array.isArray(matches)
+        ? matches.map(m => `[${m.id}] ${m.homeTeam?.name||'?'} v ${m.awayTeam?.name||'?'} | ${m.league?.name||'?'} | Result: ${m.state?.score||'?'} | ${m.state?.description||'?'}`).join('\n')
+        : JSON.stringify(r.data, null, 2);
+      show('yesterday', `HTTP ${r.status} — ${Array.isArray(matches)?matches.length:0} matches yesterday\n\n${summary}`, !r.ok);
+
+    } else if (key === 'match') {
+      const mid = document.getElementById('matchIdInput').value.trim();
+      if (!mid) { show('match', 'Paste a match ID first!', true); btn.disabled=false; btn.textContent=origText; return; }
+      loading('match');
+      const r = await doFetch(`${BASE}/matches/${mid}`);
+      show('match', JSON.stringify(r.data, null, 2), !r.ok);
+
+    } else if (key === 'leagues') {
+      loading('leagues');
+      const r = await doFetch(`${BASE}/leagues?limit=100`);
+      const leagues = r.data?.data || r.data || [];
+      const summary = Array.isArray(leagues)
+        ? leagues.map(l => `[${l.id}] ${l.name} — ${l.country?.name||'International'}`).join('\n')
+        : JSON.stringify(r.data, null, 2);
+      show('leagues', `HTTP ${r.status} — ${Array.isArray(leagues)?leagues.length:0} leagues\n\n${summary}`, !r.ok);
+    }
+
+  } catch(e) {
+    show(key === 'match' ? 'match' : key, `ERROR: ${e.message}`, true);
+  }
+
+  btn.disabled = false;
+  btn.textContent = origText;
+}
+
+async function runAll() {
+  const btn = document.getElementById('allBtn');
+  btn.disabled = true;
+  const tests = ['today','live','standings','yesterday','leagues'];
+  for (const t of tests) {
+    const b = document.querySelector(`button[onclick="testEndpoint('${t}', this)"]`);
+    if (b) await testEndpoint(t, b);
+    await new Promise(r => setTimeout(r, 300));
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
